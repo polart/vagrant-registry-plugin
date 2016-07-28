@@ -18,6 +18,11 @@ module VagrantPlugins
         Command::Root
       end
 
+      action_hook(:registry_authenticated_boxes, :authenticate_box_url) do |hook|
+        require_relative "middleware/add_authentication"
+        hook.prepend(AddAuthentication)
+      end
+
       protected
 
       def self.init!
