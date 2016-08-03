@@ -1,39 +1,15 @@
 en:
-  login_command:
+  registry:
     errors:
       server_error: |-
-        The Atlas server responded with an not-OK response:
+        The registry server responded with an not-OK response:
 
         %{errors}
       server_unreachable: |-
-        The Atlas server is not currently accepting connections. Please check
+        The registry server is not currently accepting connections. Please check
         your network connection and try again later.
-
-    check_logged_in: |-
-      You are already logged in.
-    check_not_logged_in: |-
-      You are not currently logged in. Please run `vagrant login` and provide
-      your login information to authenticate.
-    command_header: |-
-      In a moment we will ask for your username and password to HashiCorp's
-      Atlas. After authenticating, we will store an access token locally on
-      disk. Your login details will be transmitted over a secure connection, and
-      are never stored on disk locally.
-
-      If you do not have an Atlas account, sign up at
-      https://atlas.hashicorp.com.
-    invalid_login: |-
-      Invalid username or password. Please try again.
-    invalid_token: |-
-      Invalid token. Please try again.
-    logged_in: |-
-      You are now logged in.
-    logged_out: |-
-      You are logged out.
-    token_saved: |-
-      The token was successfully saved.
-  vagrant_registry:
-    errors:
+      permission_denied: |-
+        You don't have permissions to perform this operation.
       box_upload_error: |-
         There was an error while uploading the box. The error message is shown
         below:
@@ -46,6 +22,49 @@ en:
         %{message}
       box_upload_expired: |-
         Box upload expired. Please initiate a new upload.
-      server_unreachable: |-
-        The registry server is not currently accepting connections. Please check
-        your network connection and try again later.
+      box_upload_terminated: |-
+        Box upload terminated.
+      box_file_missing: |-
+        Box file '%{path}' not found.
+      not_logged_in: |-
+        You are not logged in.
+      invalid_url: |-
+        Invalid URL: %{url}.
+
+    login:
+      registry_url: |-
+        Registry URL: %{url}
+      ask_username: |-
+        Registry Username:
+      ask_password: |-
+        Password (will be hidden):
+      check_logged_in: |-
+        You are already logged in.
+      check_not_logged_in: |-
+        You are not currently logged in. Please run `vagrant registry login <url>`
+        and provide your login information to authenticate.
+      command_header: |-
+        In a moment we will ask for your username and password to the registry.
+        After authenticating, we will store an access token locally on
+        disk. Your login details are never stored on disk locally.
+      invalid_login: |-
+        Invalid username or password. Please try again.
+      invalid_token: |-
+        Invalid token. Please try again.
+      logged_in: |-
+        You are now logged in.
+      logged_out: |-
+        You are logged out.
+      token_saved: |-
+        The token was successfully saved.
+
+    push:
+      env_url_missing: |-
+        You provided a box name, but environment variable `VAGRANT_REGISTRY_URL`
+        is empty.
+      ask_box_create: |-
+        Box %{@username}/%{@box_name} does not exist. Create new (Y/N)?:
+      box_created: |-
+        Created new box %{@username}/%{@box_name}.
+      box_file_uploaded: |-
+        Uploaded box file

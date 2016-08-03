@@ -79,7 +79,9 @@ module VagrantPlugins
       def create_new_box
         @logger.info("Creating new box #{@username}/#{@box_name}")
         create_box = nil
-        message = "Box #{@username}/#{@box_name} does not exist. Create new (Y/N)?: "
+        message = I18n.t("registry.push.ask_box_create",
+                         :username => @username,
+                         :box_name => @box_name) + " "
         until create_box == 'y' || create_box == 'n'
           create_box = @env.ui.ask(message)
           create_box.downcase!
@@ -115,7 +117,9 @@ module VagrantPlugins
           end
         end
 
-        @env.ui.success("Successfully created box #{@username}/#{@box_name}")
+        @env.ui.success(I18n.t("registry.push.box_created",
+                               :username => @username,
+                               :box_name => @box_name))
       end
 
       def upload_box_file(url)
@@ -150,7 +154,7 @@ module VagrantPlugins
                 progressbar.progress = f.pos / 1024 / 1024  # megabytes
 
                 if response.code == 201
-                  @env.ui.success("Successfully uploaded box")
+                  @env.ui.success(I18n.t("registry.push.box_file_uploaded"))
                 end
               rescue RestClient::BadRequest => e
                 @env.ui.info("")  # move away from progress bar line

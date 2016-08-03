@@ -28,13 +28,13 @@ module VagrantPlugins
             env_url = ENV["VAGRANT_REGISTRY_URL"]
             unless env_url
               raise Vagrant::Errors::CLIInvalidUsage,
-                    help: "You provided box name, but 'VAGRANT_REGISTRY_URL' is empty."
+                    help: I18n.t("registry.push.env_url_missing")
             end
             url = URI.join(env_url, url).to_s
           end
 
-          raise Registry::Errors::InvalidURL unless
-              url =~ /\A#{URI::regexp(%w(http https))}\z/
+          raise Registry::Errors::InvalidURL,
+                url: url unless url =~ /\A#{URI::regexp(%w(http https))}\z/
 
           raise Registry::Errors::BoxFileNotFound,
                 path: path unless Pathname.new(path).file?

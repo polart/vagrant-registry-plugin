@@ -2,7 +2,7 @@ module VagrantPlugins
   module Registry
     module Errors
       class Error < Vagrant::Errors::VagrantError
-        error_namespace("vagrant_registry.errors")
+        error_namespace("registry.errors")
       end
 
       class ServerError < Error
@@ -14,15 +14,11 @@ module VagrantPlugins
       end
 
       class NotLoggedIn < Error
-        def error_message
-          "You're not logged in"
-        end
+        error_key(:not_logged_in)
       end
 
       class BoxFileNotFound < Error
-        def error_message
-          "Box #{path} not found"
-        end
+        error_key(:box_file_missing)
       end
 
       class BoxUploadError < Error
@@ -38,21 +34,15 @@ module VagrantPlugins
       end
 
       class BoxUploadTerminatedByUser < Error
-        def error_message
-          "Box upload terminated"
-        end
+        error_key(:box_upload_terminated)
       end
 
       class InvalidURL < Error
-        def error_message
-          "Invalid URL"
-        end
+        error_key(:invalid_url)
       end
 
       class PermissionDenied < Error
-        def error_message
-          "You don't have permissions to perform this operation"
-        end
+        error_key(:permission_denied)
       end
 
     end
