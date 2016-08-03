@@ -14,7 +14,7 @@ module VagrantPlugins
       #
       # @param [Vagrant::Environment] env url
       def initialize(env, url)
-        @logger = Log4r::Logger.new("vagrant::login::client")
+        @logger = Log4r::Logger.new("vagrant::registry::client")
         @env    = env
         @url    = url
         @host   = @url.nil? ? nil : URI.parse(@url).host
@@ -22,7 +22,7 @@ module VagrantPlugins
 
       # Removes the token, effectively logging the user out.
       def clear_token
-        @logger.info("Clearing token")
+        @logger.info("Clearing token for registry #{@url}")
         if token_path.file?
           tokens = self.all_tokens
           tokens.delete(@host)
@@ -54,7 +54,7 @@ module VagrantPlugins
       # @param [String] pass
       # @return [String] token The access token, or nil if auth failed.
       def login(user, pass)
-        @logger.info("Logging in '#{user}'")
+        @logger.info("Logging in '#{user}' into registry #{@url}")
 
         with_error_handling do
           url      = URI.join(@url, "/api-token-auth/").to_s
@@ -86,7 +86,7 @@ module VagrantPlugins
       #
       # @param [String] token
       def store_token(token)
-        @logger.info("Storing token in #{token_path}")
+        @logger.info("Storing token for registry #{@url} in #{token_path}")
 
         tokens = self.all_tokens
         tokens[@host] = token
@@ -105,11 +105,13 @@ module VagrantPlugins
       def token
         token = self.all_tokens[@host]
         if token
-          @logger.debug("Using authentication token from #{token_path}")
+          @logger.debug("Using authentication token from #{token_path} for" \
+                        " registry #{@url}")
           return token
         end
 
-        @logger.debug("No authentication token in #{token_path}")
+        @logger.debug("No authentication token in #{token_path} for" \
+                      " registry #{@url}")
 
         nil
       end

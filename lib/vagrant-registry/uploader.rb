@@ -35,6 +35,7 @@ module VagrantPlugins
       end
 
       def upload_box
+        @logger.info("Uploading box '#{@path}' #{@version} #{@provider} to '#{@url}'")
         begin
           upload_url = self.initiate_upload
         rescue RestClient::NotFound
@@ -48,6 +49,7 @@ module VagrantPlugins
       protected
 
       def initiate_upload
+        @logger.debug("Initiating upload for box '#{@path}'")
         api_url = URI.join(@url, "/api/boxes/#{@username}/#{@box_name}/uploads/").to_s
         url = self.authenticate_url(api_url)
 
@@ -75,6 +77,7 @@ module VagrantPlugins
       end
 
       def create_new_box
+        @logger.info("Creating new box #{@username}/#{@box_name}")
         create_box = nil
         message = "Box #{@username}/#{@box_name} does not exist. Create new (Y/N)?: "
         until create_box == 'y' || create_box == 'n'
