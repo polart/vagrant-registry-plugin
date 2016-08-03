@@ -2,19 +2,18 @@ require "optparse"
 require "uri"
 require "pathname"
 
+require_relative "../uploader"
+
 module VagrantPlugins
   module Registry
     module Command
       class Push < Vagrant.plugin("2", :command)
 
         def execute
-          require_relative '../uploader'
-
           opts = OptionParser.new do |o|
             o.banner = "Usage: vagrant registry push <path> <url> <version> <provider>"
           end
 
-          # Parse the options
           argv = parse_options(opts)
           return unless argv
 
@@ -25,6 +24,7 @@ module VagrantPlugins
           end
 
           if url =~ /^\w+\/\w+$/
+            # User specified box name instead of URL. Construct full URL.
             env_url = ENV["VAGRANT_REGISTRY_URL"]
             unless env_url
               raise Vagrant::Errors::CLIInvalidUsage,
@@ -41,12 +41,14 @@ module VagrantPlugins
 
           self.logged_in?(url)
 
-          uploader = Uploader.new(@env, path, url, version, provider)
+          uploader = Registry::Uploader.new(@env, path, url, version, provider)
           uploader.upload_box
 
           # Success, exit status 0
           0
         end
+
+        protected
 
         def logged_in?(url)
           require_relative "../client"

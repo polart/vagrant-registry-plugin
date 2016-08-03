@@ -7,7 +7,7 @@ module VagrantPlugins
         end
 
         def execute
-          require_relative '../client'
+          require_relative "../client"
 
           options = {}
 
@@ -27,7 +27,6 @@ module VagrantPlugins
             end
           end
 
-          # Parse the options
           argv = parse_options(opts)
           return unless argv
 
@@ -40,7 +39,7 @@ module VagrantPlugins
                   help: opts.help.chomp
           end
 
-          @client = Client.new(@env, url)
+          @client = Registry::Client.new(@env, url)
 
           # Determine what task we're actually taking based on flags
           if options[:check]
@@ -56,20 +55,20 @@ module VagrantPlugins
 
           @env.ui.output(I18n.t("registry.login.registry_url", :url => url))
 
-          # Ask for the username
+          # Ask for credentials
           login    = nil
           password = nil
-          while !login
+          until login
             login = @env.ui.ask(I18n.t("registry.login.ask_username") + " ")
           end
 
-          while !password
+          until password
             password = @env.ui.ask(I18n.t("registry.login.ask_password") + " ",
                                    echo: false)
           end
 
           token = @client.login(login, password)
-          if !token
+          unless token
             @env.ui.error(I18n.t("registry.login.invalid_login"))
             return 1
           end
@@ -82,17 +81,17 @@ module VagrantPlugins
         def execute_check
           if @client.logged_in?
             @env.ui.success(I18n.t("registry.login.check_logged_in"))
-            return 0
+            0
           else
             @env.ui.error(I18n.t("registry.login.check_not_logged_in"))
-            return 1
+            1
           end
         end
 
         def execute_logout
           @client.clear_token
           @env.ui.success(I18n.t("registry.login.logged_out"))
-          return 0
+          0
         end
 
         def execute_token(token)
@@ -101,10 +100,10 @@ module VagrantPlugins
 
           if @client.logged_in?
             @env.ui.success(I18n.t("registry.login.check_logged_in"))
-            return 0
+            0
           else
             @env.ui.error(I18n.t("registry.login.invalid_token"))
-            return 1
+            1
           end
         end
       end

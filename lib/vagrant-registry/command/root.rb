@@ -1,4 +1,4 @@
-require 'optparse'
+require "optparse"
 
 module VagrantPlugins
   module Registry
@@ -33,12 +33,13 @@ module VagrantPlugins
 
           # If we reached this far then we must have a subcommand. If not,
           # then we also just print the help and exit.
-          command_class = @subcommands.get(@sub_command.to_sym) if @sub_command
-          return help if !command_class || !@sub_command
-          @logger.debug("Invoking command class: #{command_class} #{@sub_args.inspect}")
-
-          # Initialize and execute the command class
-          command_class.new(@sub_args, @env).execute
+          if @sub_command
+            command_class = @subcommands.get(@sub_command.to_sym)
+            @logger.debug("Invoking command class: #{command_class} #{@sub_args.inspect}")
+            command_class.new(@sub_args, @env).execute
+          else
+            help
+          end
         end
 
         # Prints the help out for this command

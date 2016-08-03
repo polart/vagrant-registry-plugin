@@ -1,18 +1,18 @@
 require "yaml"
 require "uri"
 require "rest_client"
-require "vagrant/util/downloader"
 require "vagrant/util/presence"
-require_relative "errors"
+
 
 module VagrantPlugins
   module Registry
     class Client
       include Vagrant::Util::Presence
 
-      # Initializes a login client with the given Vagrant::Environment.
+      # Initializes a login client
       #
-      # @param [Vagrant::Environment] env url
+      # @param [Vagrant::Environment] env
+      # @param [String] url Registry URL
       def initialize(env, url)
         @logger = Log4r::Logger.new("vagrant::registry::client")
         @env    = env
@@ -38,7 +38,7 @@ module VagrantPlugins
       # @return [Boolean]
       def logged_in?
         token = self.token
-        return false if !token
+        return false unless token
 
         with_error_handling do
           url = URI.join(@url, "/api-token-auth/#{token}/").to_s
@@ -58,7 +58,7 @@ module VagrantPlugins
 
         with_error_handling do
           url      = URI.join(@url, "/api-token-auth/").to_s
-          request  = { "username" => user, "password" => pass }
+          request  = { :username => user, :password => pass }
 
           proxy   = nil
           proxy ||= ENV["HTTPS_PROXY"] || ENV["https_proxy"]
@@ -97,9 +97,7 @@ module VagrantPlugins
         nil
       end
 
-      # Reads the access token if there is one. This will first read the
-      # `ATLAS_TOKEN` environment variable and then fallback to the stored
-      # access token on disk.
+      # Reads the access token if there is one.
       #
       # @return [String]
       def token
@@ -116,6 +114,9 @@ module VagrantPlugins
         nil
       end
 
+      # Reads all stored access tokens for all registries.
+      #
+      # @return [Hash]
       def all_tokens
         if token_path.exist?
           return YAML::load_file(token_path)
@@ -131,17 +132,6 @@ module VagrantPlugins
       rescue RestClient::Unauthorized
         @logger.debug("Unauthorized!")
         false
-      rescue RestClient::NotAcceptable => e
-        @logger.debug("Got unacceptable response:")
-        @logger.debug(e.message)
-        @logger.debug(e.backtrace.join("\n"))
-
-        begin
-          errors = JSON.parse(e.response)["errors"].join("\n")
-          raise Errors::ServerError, errors: errors
-        rescue JSON::ParserError; end
-
-        raise "An unexpected error occurred: #{e.inspect}"
       rescue RestClient::BadRequest
         false
       rescue RestClient::NotFound

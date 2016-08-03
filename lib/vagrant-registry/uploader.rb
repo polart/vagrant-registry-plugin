@@ -3,6 +3,8 @@ require "uri"
 require "rest_client"
 require "vagrant/util/downloader"
 require "vagrant/util/presence"
+require "ruby-progressbar"
+
 require_relative "errors"
 
 module VagrantPlugins
@@ -11,9 +13,13 @@ module VagrantPlugins
 
       CHUNK_SIZE = 1024 * 1024 * 5  # 5 MB
 
-      # Initializes a login client with the given Vagrant::Environment.
+      # Initializes a box uploader
       #
-      # @param [Vagrant::Environment] env url
+      # @param [Vagrant::Environment] env
+      # @param [String] path
+      # @param [String] url
+      # @param [String] version
+      # @param [String] provider
       def initialize(env, path, url, version, provider)
         @logger = Log4r::Logger.new("vagrant::registry::uploader")
         @env = env
@@ -23,8 +29,8 @@ module VagrantPlugins
         @file_size = Pathname.new(path).size?
 
         u = URI.parse(url)
-        _, @username, @box_name = u.path.split('/')
-        u.path, u.opaque, u.query, u.fragment = ''
+        _, @username, @box_name = u.path.split("/")
+        u.path, u.opaque, u.query, u.fragment = ""
         @url = u.to_s
 
         # Set global proxy for all requests
@@ -34,6 +40,7 @@ module VagrantPlugins
         RestClient.proxy = proxy
       end
 
+      # Upload new box
       def upload_box
         @logger.info("Uploading box '#{@path}' #{@version} #{@provider} to '#{@url}'")
         begin
@@ -48,6 +55,9 @@ module VagrantPlugins
 
       protected
 
+      # Initiate a box upload
+      #
+      # @return [String] URL to which box file should be uploaded
       def initiate_upload
         @logger.debug("Initiating upload for box '#{@path}'")
         api_url = URI.join(@url, "/api/boxes/#{@username}/#{@box_name}/uploads/").to_s
@@ -76,18 +86,19 @@ module VagrantPlugins
 
       end
 
+      # Create new user box
       def create_new_box
         @logger.info("Creating new box #{@username}/#{@box_name}")
         create_box = nil
         message = I18n.t("registry.push.ask_box_create",
                          :username => @username,
                          :box_name => @box_name) + " "
-        until create_box == 'y' || create_box == 'n'
+        until create_box == "y" || create_box == "n"
           create_box = @env.ui.ask(message)
           create_box.downcase!
         end
 
-        if create_box == 'n'
+        if create_box == "n"
           raise Registry::Errors::BoxUploadTerminatedByUser
         end
 
@@ -95,26 +106,17 @@ module VagrantPlugins
         url = self.authenticate_url(api_url)
 
         with_error_handling do
-          begin
-            payload = {:name => @box_name}
-            RestClient::Request.execute(
-                method: :post,
-                url: url,
-                payload: JSON.dump(payload),
-                headers: {
-                    accept: :json,
-                    content_type: :json,
-                    user_agent: Vagrant::Util::Downloader::USER_AGENT,
-                },
-            )
-          rescue RestClient::BadRequest => e
-            begin
-              detail = JSON.parse(e.response)["detail"]
-              raise Registry::Errors::BoxUploadError, message: detail
-            rescue JSON::ParserError
-              raise "An unexpected error occurred: #{e.inspect}"
-            end
-          end
+          payload = {:name => @box_name}
+          RestClient::Request.execute(
+              method: :post,
+              url: url,
+              payload: JSON.dump(payload),
+              headers: {
+                  accept: :json,
+                  content_type: :json,
+                  user_agent: Vagrant::Util::Downloader::USER_AGENT,
+              },
+          )
         end
 
         @env.ui.success(I18n.t("registry.push.box_created",
@@ -122,6 +124,9 @@ module VagrantPlugins
                                :box_name => @box_name))
       end
 
+      # Upload box file
+      #
+      # @param [String] url to which box file should be uploaded
       def upload_box_file(url)
         @logger.debug("Uploading box file '#{@path}' to '#{url}'")
 
@@ -131,7 +136,7 @@ module VagrantPlugins
             :total => @file_size / 1024 / 1024,   # megabytes
             :format => "Uploading: [%b>%i] %c MB/%C MB | %R MB/sec |%e")
 
-        File.open(@path, 'rb') do |f|
+        File.open(@path, "rb") do |f|
           until f.eof?
             offset_start = f.pos
             chunk = f.read(CHUNK_SIZE)
@@ -158,13 +163,7 @@ module VagrantPlugins
                 end
               rescue RestClient::BadRequest => e
                 @env.ui.info("")  # move away from progress bar line
-
-                begin
-                  detail = JSON.parse(e.response)["detail"]
-                  raise Registry::Errors::BoxUploadError, message: detail
-                rescue JSON::ParserError
-                  raise "An unexpected error occurred: #{e.inspect}"
-                end
+                raise e
               rescue RestClient::NotFound
                 raise Registry::Errors::BoxUploadExpired
               rescue RestClient::RangeNotSatisfiable => e
@@ -194,6 +193,21 @@ module VagrantPlugins
 
       def with_error_handling(&block)
         yield
+      rescue RestClient::BadRequest => e
+        begin
+          response = JSON.parse(e.response)
+          detail = response["detail"]
+          message = !detail.nil? ? "#{detail}\n" : ""
+          response.each do |key, value|
+            if value.is_a? Array
+              value = value.join(' | ')
+            end
+            message += " * #{key}: #{value}\n"
+          end
+          raise Registry::Errors::BoxUploadError, message: message
+        rescue JSON::ParserError
+          raise "An unexpected error occurred: #{e.inspect}"
+        end
       rescue RestClient::Unauthorized
         raise Registry::Errors::NotLoggedIn
       rescue RestClient::Forbidden
