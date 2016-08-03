@@ -29,9 +29,11 @@ module VagrantPlugins
 
           # Parse the options
           argv = parse_options(opts)
-          return if !argv
+          return unless argv
 
           url = argv[0] || ENV["VAGRANT_REGISTRY_URL"]
+          raise Registry::Errors::InvalidURL unless
+              url =~ /\A#{URI::regexp(%w(http https))}\z/
 
           if !url || argv.length > 1
             raise Vagrant::Errors::CLIInvalidUsage,

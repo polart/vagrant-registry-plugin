@@ -32,3 +32,20 @@ en:
       You are logged out.
     token_saved: |-
       The token was successfully saved.
+  vagrant_registry:
+    errors:
+      box_upload_error: |-
+        There was an error while uploading the box. The error message is shown
+        below:
+
+        %{message}
+      box_create_error: |-
+        There was an error while creating new box. The error message is shown
+        below:
+
+        %{message}
+      box_upload_expired: |-
+        Box upload expired. Please initiate a new upload.
+      server_unreachable: |-
+        The registry server is not currently accepting connections. Please check
+        your network connection and try again later.
