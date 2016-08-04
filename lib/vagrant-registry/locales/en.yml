@@ -68,3 +68,5 @@ en:
         Created new box %{username}/%{box_name}.
       box_file_uploaded: |-
         Uploaded box file.
+      continue_upload: |-
+        Continuing box upload.

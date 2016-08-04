@@ -27,11 +27,14 @@ module VagrantPlugins
         @version = version
         @provider = provider
         @file_size = Pathname.new(path).size?
+        @box_file_hash = Digest::SHA256.file(@path).hexdigest
 
         u = URI.parse(url)
         _, @username, @box_name = u.path.split("/")
         u.path, u.opaque, u.query, u.fragment = ""
-        @url = u.to_s
+        @root_url = u.to_s
+
+        @interrupted_upload_url = self.interrupted_upload_url
 
         # Set global proxy for all requests
         proxy = nil
@@ -42,15 +45,29 @@ module VagrantPlugins
 
       # Upload new box
       def upload_box
-        @logger.info("Uploading box '#{@path}' #{@version} #{@provider} to '#{@url}'")
-        begin
-          upload_url = self.initiate_upload
-        rescue RestClient::NotFound
-          self.create_new_box
-          upload_url = self.initiate_upload
+        if @interrupted_upload_url
+          @logger.info("Continuing box upload '#{@path}' #{@version} " \
+                       "#{@provider} to '#{@interrupted_upload_url}'")
+          upload_url = @interrupted_upload_url
+          @env.ui.info(I18n.t("registry.push.continue_upload"))
+        else
+          @logger.info("Uploading new box '#{@path}' #{@version} " \
+                       "#{@provider} to '#{@root_url}'")
+          begin
+            upload_url = self.initiate_upload
+          rescue RestClient::NotFound
+            self.create_new_box
+            upload_url = self.initiate_upload
+          end
         end
 
         self.upload_box_file(upload_url)
+      end
+
+      # Upload new box without continuing previously interrupted upload
+      def upload_box!
+        self.clean_stored_upload_url
+        self.upload_box
       end
 
       protected
@@ -60,14 +77,14 @@ module VagrantPlugins
       # @return [String] URL to which box file should be uploaded
       def initiate_upload
         @logger.debug("Initiating upload for box '#{@path}'")
-        api_url = URI.join(@url, "/api/boxes/#{@username}/#{@box_name}/uploads/").to_s
+        api_url = URI.join(@root_url, "/api/boxes/#{@username}/#{@box_name}/uploads/").to_s
         url = self.authenticate_url(api_url)
 
         with_error_handling do
           payload = {
               :file_size => @file_size,
               :checksum_type => 'sha256',
-              :checksum => Digest::SHA256.file(@path).to_s,
+              :checksum => @box_file_hash,
               :version => @version,
               :provider =>@provider,
           }
@@ -81,7 +98,9 @@ module VagrantPlugins
                   user_agent: Vagrant::Util::Downloader::USER_AGENT,
               },
           )
-          return JSON.load(response.to_s)['url']
+          upload_url = JSON.load(response.to_s)['url']
+          self.store_upload_url(upload_url)
+          return upload_url
         end
 
       end
@@ -102,7 +121,7 @@ module VagrantPlugins
           raise Registry::Errors::BoxUploadTerminatedByUser
         end
 
-        api_url = URI.join(@url, "/api/boxes/#{@username}/").to_s
+        api_url = URI.join(@root_url, "/api/boxes/#{@username}/").to_s
         url = self.authenticate_url(api_url)
 
         with_error_handling do
@@ -159,6 +178,7 @@ module VagrantPlugins
                 progressbar.progress = f.pos / 1024 / 1024  # megabytes
 
                 if response.code == 201
+                  self.clean_stored_upload_url
                   @env.ui.success(I18n.t("registry.push.box_file_uploaded"))
                 end
               rescue RestClient::BadRequest => e
@@ -191,6 +211,49 @@ module VagrantPlugins
         authed_urls[0]
       end
 
+      def interrupted_upload_url
+        self.all_interrupted_uploads[self.upload_hash]
+      end
+
+      # Store upload URL that later can be used to continuing interrupted upload.
+      def store_upload_url(url)
+        @logger.debug("Storing upload URL #{url} in #{interrupted_uploads_path}")
+        uploads = all_interrupted_uploads
+        uploads[upload_hash] = url
+        File.open(interrupted_uploads_path, "w") do |file|
+          file.write uploads.to_yaml
+        end
+      end
+
+      def clean_stored_upload_url
+        @logger.debug("Clearing upload URL for box hash #{@box_file_hash}")
+        uploads = all_interrupted_uploads
+        uploads.delete(upload_hash)
+        File.open(interrupted_uploads_path, "w") do |file|
+          file.write uploads.to_yaml
+        end
+        @interrupted_upload_url = nil
+      end
+
+      def upload_hash
+        Digest::SHA256.hexdigest "#{@root_url}-#{@box_file_hash}-#{@version}-#{@provider}"
+      end
+
+      # Reads all stored interrupted uploads for all registries.
+      #
+      # @return [Hash] hash => Registry URL
+      def all_interrupted_uploads
+        if interrupted_uploads_path.exist?
+          return YAML::load_file(interrupted_uploads_path)
+        end
+
+        {}
+      end
+
+      def interrupted_uploads_path
+        @env.data_dir.join("registries_uploads.yml")
+      end
+
       def with_error_handling(&block)
         yield
       rescue RestClient::BadRequest => e
@@ -213,7 +276,7 @@ module VagrantPlugins
       rescue RestClient::Forbidden
         raise Errors::PermissionDenied
       rescue SocketError
-        raise Errors::ServerUnreachable, url: @url
+        raise Errors::ServerUnreachable, url: @root_url
       end
 
     end

@@ -116,7 +116,7 @@ module VagrantPlugins
 
       # Reads all stored access tokens for all registries.
       #
-      # @return [Hash]
+      # @return [Hash] Registry URL => token
       def all_tokens
         if token_path.exist?
           return YAML::load_file(token_path)

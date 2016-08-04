@@ -12,7 +12,7 @@ module VagrantPlugins
           options = {}
 
           opts = OptionParser.new do |o|
-            o.banner = "Usage: vagrant registry login <url>"
+            o.banner = "Usage: vagrant registry login <url> [options]"
             o.separator ""
             o.on("-c", "--check", "Only checks if you're logged in") do |c|
               options[:check] = c

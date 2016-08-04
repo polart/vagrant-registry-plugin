@@ -10,8 +10,14 @@ module VagrantPlugins
       class Push < Vagrant.plugin("2", :command)
 
         def execute
+          options = {}
+
           opts = OptionParser.new do |o|
-            o.banner = "Usage: vagrant registry push <path> <url> <version> <provider>"
+            o.banner = "Usage: vagrant registry push <path> <url> <version> <provider> [options]"
+            o.separator ""
+            o.on("-n", "--new-upload", "Upload without continuing interrupted upload") do |n|
+              options[:new_upload] = n
+            end
           end
 
           argv = parse_options(opts)
@@ -42,7 +48,12 @@ module VagrantPlugins
           self.logged_in?(url)
 
           uploader = Registry::Uploader.new(@env, path, url, version, provider)
-          uploader.upload_box
+
+          if options[:new_upload]
+            uploader.upload_box!
+          else
+            uploader.upload_box
+          end
 
           # Success, exit status 0
           0
