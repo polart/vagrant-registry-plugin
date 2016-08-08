@@ -1,3 +1,5 @@
+# Based on VagrantPlugins::LoginCommand::Command
+
 module VagrantPlugins
   module Registry
     module Command

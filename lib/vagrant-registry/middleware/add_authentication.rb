@@ -3,6 +3,8 @@ require "uri"
 
 require_relative "../client"
 
+# Based on VagrantPlugins::LoginCommand::AddAuthentication
+
 module VagrantPlugins
   module Registry
     class AddAuthentication

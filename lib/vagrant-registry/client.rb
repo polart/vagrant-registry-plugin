@@ -3,6 +3,7 @@ require "uri"
 require "rest_client"
 require "vagrant/util/downloader"
 
+# Based on VagrantPlugins::LoginCommand::Client
 
 module VagrantPlugins
   module Registry
