@@ -1,9 +1,3 @@
-begin
-  require "vagrant"
-rescue LoadError
-  raise "The vagrant-registry plugin must be run within Vagrant."
-end
-
 module VagrantPlugins
   module Registry
     class Plugin < Vagrant.plugin("2")
@@ -13,7 +7,7 @@ module VagrantPlugins
       DESC
 
       command("registry") do
-        require File.expand_path("../command/root", __FILE__)
+        require_relative "command/root"
         init!
         Command::Root
       end
@@ -27,8 +21,6 @@ module VagrantPlugins
 
       def self.init!
         return if defined?(@_init)
-        I18n.load_path << File.expand_path("../locales/en.yml", __FILE__)
-        I18n.reload!
         @_init = true
       end
 

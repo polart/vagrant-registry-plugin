@@ -63,7 +63,7 @@ module VagrantPlugins
 
         def logged_in?(url)
           require_relative "../client"
-          client = Client.new(@env, url)
+          client = VagrantPlugins::Registry::Client.new(@env, url)
           unless client.logged_in?
             raise Registry::Errors::NotLoggedIn
           end

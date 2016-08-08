@@ -2,7 +2,6 @@ require "yaml"
 require "uri"
 require "rest_client"
 require "vagrant/util/downloader"
-require "vagrant/util/presence"
 require "ruby-progressbar"
 
 require_relative "errors"
@@ -11,8 +10,6 @@ module VagrantPlugins
   module Registry
     class Uploader
 
-      CHUNK_SIZE = 1024 * 1024 * 5  # 5 MB
-
       # Initializes a box uploader
       #
       # @param [Vagrant::Environment] env
@@ -20,12 +17,14 @@ module VagrantPlugins
       # @param [String] url
       # @param [String] version
       # @param [String] provider
-      def initialize(env, path, url, version, provider)
+      def initialize(env, path, url, version, provider,
+                     chunk_size = 1024 * 1024 * 5) # 5 MB
         @logger = Log4r::Logger.new("vagrant::registry::uploader")
         @env = env
         @path = path
         @version = version
         @provider = provider
+        @chunk_size = chunk_size
         @file_size = Pathname.new(path).size?
         @box_file_hash = Digest::SHA256.file(@path).hexdigest
 
@@ -83,7 +82,7 @@ module VagrantPlugins
         with_error_handling do
           payload = {
               :file_size => @file_size,
-              :checksum_type => 'sha256',
+              :checksum_type => "sha256",
               :checksum => @box_file_hash,
               :version => @version,
               :provider =>@provider,
@@ -98,7 +97,7 @@ module VagrantPlugins
                   user_agent: Vagrant::Util::Downloader::USER_AGENT,
               },
           )
-          upload_url = JSON.load(response.to_s)['url']
+          upload_url = JSON.load(response.to_s)["url"]
           self.store_upload_url(upload_url)
           return upload_url
         end
@@ -158,7 +157,7 @@ module VagrantPlugins
         File.open(@path, "rb") do |f|
           until f.eof?
             offset_start = f.pos
-            chunk = f.read(CHUNK_SIZE)
+            chunk = f.read(@chunk_size)
             content_range = "bytes #{offset_start}-#{f.pos}/#{@file_size}"
 
             with_error_handling do
@@ -215,7 +214,7 @@ module VagrantPlugins
         self.all_interrupted_uploads[self.upload_hash]
       end
 
-      # Store upload URL that later can be used to continuing interrupted upload.
+      # Store upload URL that later can be used to resume interrupted upload.
       def store_upload_url(url)
         @logger.debug("Storing upload URL #{url} in #{interrupted_uploads_path}")
         uploads = all_interrupted_uploads

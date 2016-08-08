@@ -31,13 +31,13 @@ module VagrantPlugins
           return unless argv
 
           url = argv[0] || ENV["VAGRANT_REGISTRY_URL"]
-          raise Registry::Errors::InvalidURL,
-                url: url unless url =~ /\A#{URI::regexp(%w(http https))}\z/
-
           if !url || argv.length > 1
             raise Vagrant::Errors::CLIInvalidUsage,
                   help: opts.help.chomp
           end
+
+          raise Registry::Errors::InvalidURL,
+                url: url unless url =~ /\A#{URI::regexp(%w(http https))}\z/
 
           @client = Registry::Client.new(@env, url)
 

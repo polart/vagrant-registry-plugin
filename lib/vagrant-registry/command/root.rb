@@ -15,12 +15,12 @@ module VagrantPlugins
 
           @subcommands = Vagrant::Registry.new
           @subcommands.register(:login) do
-            require_relative 'login'
+            require_relative "login"
             Login
           end
 
           @subcommands.register(:push) do
-            require_relative 'push'
+            require_relative "push"
             Push
           end
         end

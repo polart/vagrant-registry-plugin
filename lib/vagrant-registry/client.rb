@@ -1,13 +1,12 @@
 require "yaml"
 require "uri"
 require "rest_client"
-require "vagrant/util/presence"
+require "vagrant/util/downloader"
 
 
 module VagrantPlugins
   module Registry
     class Client
-      include Vagrant::Util::Presence
 
       # Initializes a login client
       #
@@ -138,7 +137,7 @@ module VagrantPlugins
         false
       rescue SocketError
         @logger.info("Socket error")
-        raise Errors::ServerUnreachable, url: @url
+        raise Registry::Errors::ServerUnreachable, url: @url
       end
 
       def token_path
