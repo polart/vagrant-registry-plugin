@@ -34,7 +34,7 @@ module VagrantPlugins
             env_url = ENV["VAGRANT_REGISTRY_URL"]
             unless env_url
               raise Vagrant::Errors::CLIInvalidUsage,
-                    help: I18n.t("registry.push.env_url_missing")
+                    help: I18n.t("vagrant_registry.push.env_url_missing")
             end
             url = URI.join(env_url, url).to_s
           end

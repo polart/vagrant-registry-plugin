@@ -10,10 +10,7 @@ require_relative "vagrant-registry/errors"
 
 module VagrantPlugins
   module Registry
-    # Your code goes here...
-
+    I18n.load_path << File.expand_path("../../locales/en.yml", __FILE__)
+    I18n.reload!
   end
 end
-
-I18n.load_path << File.expand_path("../vagrant-registry/locales/en.yml", __FILE__)
-I18n.reload!

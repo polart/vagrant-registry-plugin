@@ -48,7 +48,7 @@ module VagrantPlugins
           @logger.info("Continuing box upload '#{@path}' #{@version} " \
                        "#{@provider} to '#{@interrupted_upload_url}'")
           upload_url = @interrupted_upload_url
-          @env.ui.info(I18n.t("registry.push.continue_upload"))
+          @env.ui.info(I18n.t("vagrant_registry.push.continue_upload"))
         else
           @logger.info("Uploading new box '#{@path}' #{@version} " \
                        "#{@provider} to '#{@root_url}'")
@@ -108,7 +108,7 @@ module VagrantPlugins
       def create_new_box
         @logger.info("Creating new box #{@username}/#{@box_name}")
         create_box = nil
-        message = I18n.t("registry.push.ask_box_create",
+        message = I18n.t("vagrant_registry.push.ask_box_create",
                          :username => @username,
                          :box_name => @box_name) + " "
         until create_box == "y" || create_box == "n"
@@ -137,7 +137,7 @@ module VagrantPlugins
           )
         end
 
-        @env.ui.success(I18n.t("registry.push.box_created",
+        @env.ui.success(I18n.t("vagrant_registry.push.box_created",
                                :username => @username,
                                :box_name => @box_name))
       end
@@ -178,7 +178,7 @@ module VagrantPlugins
 
                 if response.code == 201
                   self.clean_stored_upload_url
-                  @env.ui.success(I18n.t("registry.push.box_file_uploaded"))
+                  @env.ui.success(I18n.t("vagrant_registry.push.box_file_uploaded"))
                 end
               rescue RestClient::BadRequest => e
                 @env.ui.info("")  # move away from progress bar line

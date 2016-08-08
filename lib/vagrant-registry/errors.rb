@@ -2,7 +2,7 @@ module VagrantPlugins
   module Registry
     module Errors
       class Error < Vagrant::Errors::VagrantError
-        error_namespace("registry.errors")
+        error_namespace("vagrant_registry.errors")
       end
 
       class ServerError < Error

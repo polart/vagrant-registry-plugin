@@ -51,58 +51,58 @@ module VagrantPlugins
           end
 
           # Let the user know what is going on.
-          @env.ui.output(I18n.t("registry.login.command_header") + "\n")
+          @env.ui.output(I18n.t("vagrant_registry.login.command_header") + "\n")
 
-          @env.ui.output(I18n.t("registry.login.registry_url", :url => url))
+          @env.ui.output(I18n.t("vagrant_registry.login.registry_url", :url => url))
 
           # Ask for credentials
           login    = nil
           password = nil
           until login
-            login = @env.ui.ask(I18n.t("registry.login.ask_username") + " ")
+            login = @env.ui.ask(I18n.t("vagrant_registry.login.ask_username") + " ")
           end
 
           until password
-            password = @env.ui.ask(I18n.t("registry.login.ask_password") + " ",
+            password = @env.ui.ask(I18n.t("vagrant_registry.login.ask_password") + " ",
                                    echo: false)
           end
 
           token = @client.login(login, password)
           unless token
-            @env.ui.error(I18n.t("registry.login.invalid_login"))
+            @env.ui.error(I18n.t("vagrant_registry.login.invalid_login"))
             return 1
           end
 
           @client.store_token(token)
-          @env.ui.success(I18n.t("registry.login.logged_in"))
+          @env.ui.success(I18n.t("vagrant_registry.login.logged_in"))
           0
         end
 
         def execute_check
           if @client.logged_in?
-            @env.ui.success(I18n.t("registry.login.check_logged_in"))
+            @env.ui.success(I18n.t("vagrant_registry.login.check_logged_in"))
             0
           else
-            @env.ui.error(I18n.t("registry.login.check_not_logged_in"))
+            @env.ui.error(I18n.t("vagrant_registry.login.check_not_logged_in"))
             1
           end
         end
 
         def execute_logout
           @client.clear_token
-          @env.ui.success(I18n.t("registry.login.logged_out"))
+          @env.ui.success(I18n.t("vagrant_registry.login.logged_out"))
           0
         end
 
         def execute_token(token)
           @client.store_token(token)
-          @env.ui.success(I18n.t("registry.login.token_saved"))
+          @env.ui.success(I18n.t("vagrant_registry.login.token_saved"))
 
           if @client.logged_in?
-            @env.ui.success(I18n.t("registry.login.check_logged_in"))
+            @env.ui.success(I18n.t("vagrant_registry.login.check_logged_in"))
             0
           else
-            @env.ui.error(I18n.t("registry.login.invalid_token"))
+            @env.ui.error(I18n.t("vagrant_registry.login.invalid_token"))
             1
           end
         end

@@ -1,5 +1,5 @@
 en:
-  registry:
+  vagrant_registry:
     errors:
       server_error: |-
         The registry server responded with an not-OK response:
