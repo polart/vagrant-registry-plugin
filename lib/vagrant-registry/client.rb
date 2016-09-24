@@ -134,7 +134,7 @@ module VagrantPlugins
         false
       rescue RestClient::BadRequest
         false
-      rescue RestClient::NotFound
+      rescue RestClient::ResourceNotFound
         false
       rescue SocketError
         @logger.info("Socket error")

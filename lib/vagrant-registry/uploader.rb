@@ -54,7 +54,7 @@ module VagrantPlugins
                        "#{@provider} to '#{@root_url}'")
           begin
             upload_url = self.initiate_upload
-          rescue RestClient::NotFound
+          rescue RestClient::ResourceNotFound
             self.create_new_box
             upload_url = self.initiate_upload
           end
@@ -183,7 +183,7 @@ module VagrantPlugins
               rescue RestClient::BadRequest => e
                 @env.ui.info("")  # move away from progress bar line
                 raise e
-              rescue RestClient::NotFound
+              rescue RestClient::ResourceNotFound
                 raise Registry::Errors::BoxUploadExpired
               rescue RestClient::RangeNotSatisfiable => e
                 @logger.debug("Range not satisfiable")

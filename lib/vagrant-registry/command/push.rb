@@ -40,7 +40,7 @@ module VagrantPlugins
           end
 
           raise Registry::Errors::InvalidURL,
-                url: url unless url =~ /\A#{URI::regexp(%w(http https))}\z/
+                url: url unless url =~ /^http(s)?:\/\/.+\/\w+\/\w+(\/)?$/
 
           raise Registry::Errors::BoxFileNotFound,
                 path: path unless Pathname.new(path).file?
