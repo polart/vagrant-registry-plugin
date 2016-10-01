@@ -185,7 +185,7 @@ module VagrantPlugins
                 raise e
               rescue RestClient::ResourceNotFound
                 raise Registry::Errors::BoxUploadExpired
-              rescue RestClient::RangeNotSatisfiable => e
+              rescue RestClient::RequestedRangeNotSatisfiable => e
                 @logger.debug("Range not satisfiable")
 
                 begin
