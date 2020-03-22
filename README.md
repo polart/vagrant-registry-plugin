@@ -1,41 +1,49 @@
-# Vagrant::Registry
+# Vagrant Registry plugin
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/vagrant/registry`. To experiment with that code, run `bin/console` for an interactive prompt.
+Vagrant Registry plugin allows you to use Vagrant to access private boxes from self-hosted [Vagrant Registry](https://github.com/polart/vagrant-registry).
 
-TODO: Delete this and the text above, and describe your gem
-
-## Installation
-
-Add this line to your application's Gemfile:
-
-```ruby
-gem 'vagrant-registry'
-```
-
-And then execute:
-
-    $ bundle
-
-Or install it yourself as:
-
-    $ gem install vagrant-registry
+<p align="center"><img src="img/vr.gif?raw=true"/></p>
 
 ## Usage
 
-TODO: Write usage instructions here
+The plugin adds two commands: 
+
+- `login` - login into self-hosted Vagrant Registry
+    ```
+    $ vagrant registry login http://localhost:3000
+    ```
+
+- `push` - push box file into self-hosted Vagrant Registry
+    ```
+    $ vagrant registry push test.box http://localhost:3000/polart/test 0.1.0 virtualbox
+    ```
+
+## Installation
+
+Build package
+```
+$ bundle exec rake build
+```
+
+Install plugin into Vagrant
+```
+$ vagrant plugin install pkg/vagrant-registry-0.1.0.gem
+```
+
 
 ## Development
 
-After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake spec` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
+Install dependencies
+```
+$ bundle install
+```
 
-To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and tags, and push the `.gem` file to [rubygems.org](https://rubygems.org).
+Run tests
+```
+$ bundle exec rake test
+```
 
-## Contributing
-
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/vagrant-registry.
-
-
-## License
-
-The gem is available as open source under the terms of the [MIT License](http://opensource.org/licenses/MIT).
-
+Run the plugin within Vagrant dev build
+```
+$ bundle exec vagrant registry
+```
