@@ -41,7 +41,7 @@ module VagrantPlugins
         return false unless token
 
         with_error_handling do
-          url = URI.join(@url, "/api-token-auth/#{token}/").to_s
+          url = URI.join(@url, "/api/v1/tokens/#{token}/").to_s
           RestClient.get(url, content_type: :json)
           true
         end
@@ -57,7 +57,7 @@ module VagrantPlugins
         @logger.info("Logging in '#{user}' into registry #{@url}")
 
         with_error_handling do
-          url      = URI.join(@url, "/api-token-auth/").to_s
+          url      = URI.join(@url, "/api/v1/tokens/").to_s
           request  = { :username => user, :password => pass }
 
           proxy   = nil

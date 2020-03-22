@@ -1,12 +1,16 @@
 source "https://rubygems.org"
 
-gemspec
-
 group :development do
-  gem 'vagrant', github: 'mitchellh/vagrant'
-  gem 'vagrant-spec', github: 'mitchellh/vagrant-spec'
+  gem "rake"
+  gem "vagrant", git: "https://github.com/hashicorp/vagrant.git"
+  gem "vagrant-spec", git: "https://github.com/hashicorp/vagrant-spec.git"
 end
 
 group :plugins do
   gem 'vagrant-registry', path: '.'
+end
+
+group :test do
+  gem "webmock", require: false
+  gem 'simplecov', require: false
 end

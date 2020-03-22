@@ -18,7 +18,7 @@ describe VagrantPlugins::Registry::Client do
   end
 
   describe "#logged_in?" do
-    let(:url) { %r{^#{server_url}/api-token-auth/#{token}/} }
+    let(:url) { %r{^#{server_url}/api/v1/tokens/#{token}/} }
     let(:headers) { { "Content-Type" => "application/json" } }
 
     before { allow(subject).to receive(:token).and_return(token) }
@@ -73,7 +73,7 @@ describe VagrantPlugins::Registry::Client do
           "Content-Type" => "application/json",
       }
 
-      stub_request(:post, %r{^#{server_url}/api-token-auth/}).
+      stub_request(:post, %r{^#{server_url}/api/v1/tokens/}).
           with(body: JSON.dump(request), headers: headers).
           to_return(status: 200, body: JSON.dump(response))
 
@@ -81,14 +81,14 @@ describe VagrantPlugins::Registry::Client do
     end
 
     it "returns nil on bad login" do
-      stub_request(:post, %r{^#{server_url}/api-token-auth/}).
+      stub_request(:post, %r{^#{server_url}/api/v1/tokens/}).
           to_return(status: 400, body: "")
 
       expect(subject.login("user", "pass")).to be(false)
     end
 
     it "raises an exception if it can't reach the sever" do
-      stub_request(:post, %r{^#{server_url}/api-token-auth/}).
+      stub_request(:post, %r{^#{server_url}/api/v1/tokens/}).
           to_raise(SocketError)
 
       expect { subject.login("user", "pass") }.

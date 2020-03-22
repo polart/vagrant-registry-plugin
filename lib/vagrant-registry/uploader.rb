@@ -52,12 +52,11 @@ module VagrantPlugins
         else
           @logger.info("Uploading new box '#{@path}' #{@version} " \
                        "#{@provider} to '#{@root_url}'")
-          begin
-            upload_url = self.initiate_upload
-          rescue RestClient::ResourceNotFound
-            self.create_new_box
-            upload_url = self.initiate_upload
-          end
+
+          self.ensure_box_created
+          self.ensure_box_version_created
+          self.ensure_box_provider_created
+          upload_url = self.initiate_upload
         end
 
         self.upload_box_file(upload_url)
@@ -76,7 +75,7 @@ module VagrantPlugins
       # @return [String] URL to which box file should be uploaded
       def initiate_upload
         @logger.debug("Initiating upload for box '#{@path}'")
-        api_url = URI.join(@root_url, "/api/boxes/#{@username}/#{@box_name}/uploads/").to_s
+        api_url = URI.join(@root_url, "/api/v1/boxes/#{@username}/#{@box_name}/versions/#{@version}/providers/#{@provider}/uploads/").to_s
         url = self.authenticate_url(api_url)
 
         with_error_handling do
@@ -84,8 +83,8 @@ module VagrantPlugins
               :file_size => @file_size,
               :checksum_type => "sha256",
               :checksum => @box_file_hash,
-              :version => @version,
-              :provider =>@provider,
+              # :version => @version,
+              # :provider =>@provider,
           }
           response = RestClient::Request.execute(
               method: :post,
@@ -105,6 +104,25 @@ module VagrantPlugins
       end
 
       # Create new user box
+      def ensure_box_created
+        api_url = URI.join(@root_url, "/api/v1/boxes/#{@username}/#{@box_name}/").to_s
+        url = self.authenticate_url(api_url)
+
+        with_error_handling do
+          begin
+            RestClient::Request.execute(
+                method: :get,
+                url: url,
+                headers: {
+                    user_agent: Vagrant::Util::Downloader::USER_AGENT,
+                },
+            )
+          rescue RestClient::ResourceNotFound
+            self.create_new_box            
+          end
+        end
+      end 
+
       def create_new_box
         @logger.info("Creating new box #{@username}/#{@box_name}")
         create_box = nil
@@ -120,7 +138,7 @@ module VagrantPlugins
           raise Registry::Errors::BoxUploadTerminatedByUser
         end
 
-        api_url = URI.join(@root_url, "/api/boxes/#{@username}/").to_s
+        api_url = URI.join(@root_url, "/api/v1/boxes/#{@username}/").to_s
         url = self.authenticate_url(api_url)
 
         with_error_handling do
@@ -140,6 +158,88 @@ module VagrantPlugins
         @env.ui.success(I18n.t("vagrant_registry.push.box_created",
                                :username => @username,
                                :box_name => @box_name))
+      end
+
+      # Create new version
+      def ensure_box_version_created
+        api_url = URI.join(@root_url, "/api/v1/boxes/#{@username}/#{@box_name}/versions/#{@version}/").to_s
+        url = self.authenticate_url(api_url)
+
+        with_error_handling do
+          begin
+            RestClient::Request.execute(
+                method: :get,
+                url: url,
+                headers: {
+                    user_agent: Vagrant::Util::Downloader::USER_AGENT,
+                },
+            )
+          rescue RestClient::ResourceNotFound
+            self.create_new_box_version            
+          end
+        end
+      end 
+
+      def create_new_box_version
+        @logger.info("Creating new box version #{@username}/#{@box_name} v#{@version}")
+
+        api_url = URI.join(@root_url, "/api/v1/boxes/#{@username}/#{@box_name}/versions/").to_s
+        url = self.authenticate_url(api_url)
+
+        with_error_handling do
+          payload = {:version => @version}
+          RestClient::Request.execute(
+              method: :post,
+              url: url,
+              payload: JSON.dump(payload),
+              headers: {
+                  accept: :json,
+                  content_type: :json,
+                  user_agent: Vagrant::Util::Downloader::USER_AGENT,
+              },
+          )
+        end
+      end
+
+      # Create new provider
+      def ensure_box_provider_created
+        api_url = URI.join(@root_url, "/api/v1/boxes/#{@username}/#{@box_name}/versions/#{@version}/providers/#{@provider}/").to_s
+        url = self.authenticate_url(api_url)
+
+        with_error_handling do
+          begin
+            RestClient::Request.execute(
+                method: :get,
+                url: url,
+                headers: {
+                    user_agent: Vagrant::Util::Downloader::USER_AGENT,
+                },
+            )
+          rescue RestClient::ResourceNotFound
+            self.create_new_box_provider            
+          end
+        end
+      end 
+
+      def create_new_box_provider
+        @logger.info("Creating new box provider #{@username}/#{@box_name} v#{@version} #{@provider}")
+
+        api_url = URI.join(@root_url, "/api/v1/boxes/#{@username}/#{@box_name}/versions/#{@version}/providers/").to_s
+        url = self.authenticate_url(api_url)
+
+        with_error_handling do
+          payload = {:provider => @provider}
+          RestClient::Request.execute(
+              method: :post,
+              url: url,
+              payload: JSON.dump(payload),
+              headers: {
+                  accept: :json,
+                  content_type: :json,
+                  user_agent: Vagrant::Util::Downloader::USER_AGENT,
+              },
+          )
+        end
       end
 
       # Upload box file

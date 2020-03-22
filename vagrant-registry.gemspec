@@ -7,11 +7,10 @@ Gem::Specification.new do |spec|
   spec.name          = "vagrant-registry"
   spec.version       = VagrantPlugins::Registry::VERSION
   spec.authors       = ["Artem Polunin"]
-  spec.email         = ["Artem.Pun@gmail.com"]
 
   spec.summary       = %q{A Vagrant plugin to allow integration with private box registries.}
   spec.description   = spec.summary
-  spec.homepage      = "TODO: Put your gem's website or public repo URL here."
+  spec.homepage      = "https://github.com/polart/vagrant-registry-plugin"
   spec.license       = "MIT"
 
   # Prevent pushing this gem to RubyGems.org. To allow pushes either set the 'allowed_push_host'

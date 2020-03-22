@@ -26,7 +26,7 @@ describe VagrantPlugins::Registry::Command::Login do
 
       context "when there is a token" do
         before do
-          stub_request(:get, %r{^#{server_url}/api-token-auth/#{token}/})
+          stub_request(:get, %r{^#{server_url}/api/v1/tokens/#{token}/})
               .to_return(status: 200)
         end
 
@@ -68,7 +68,7 @@ describe VagrantPlugins::Registry::Command::Login do
 
       context "when the token is valid" do
         before do
-          stub_request(:get, %r{^#{server_url}/api-token-auth/#{token}/})
+          stub_request(:get, %r{^#{server_url}/api/v1/tokens/#{token}/})
               .to_return(status: 200)
         end
 
@@ -85,7 +85,7 @@ describe VagrantPlugins::Registry::Command::Login do
 
       context "when the token is invalid" do
         before do
-          stub_request(:get, %r{^#{server_url}/api-token-auth/#{token}/})
+          stub_request(:get, %r{^#{server_url}/api/v1/tokens/#{token}/})
               .to_return(status: 404)
         end
 
